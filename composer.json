@@ -1,0 +1,24 @@
+{
+    "version": "1.0.0",
+    "name": "jenn0pal/airspeedapi-php",
+    "description": "git remote add origin git@github.com:jenn0pal/airspeedapi-php.git",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ray Jonathan Palpallatoc",
+            "email": "jenn0pal@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.5",
+        "ext-json": "*",
+        "guzzlehttp/guzzle": "~6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "jenn0pal\\Api\\": "src/"
+        }
+    }
+}
