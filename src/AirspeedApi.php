@@ -73,10 +73,10 @@ class AirspeedApi
         try {
             return $this->client->request($method, $path, $options);
         }  catch (ClientException $e) {
-            echo Psr7\str($e->getRequest());
+            //echo Psr7\str($e->getRequest());
             return $e->getResponse();
         } catch (RequestException $e) {
-            echo Psr7\str($e->getRequest());
+            //echo Psr7\str($e->getRequest());
             if ($e->hasResponse()) {
                 return $e->getResponse();
             }
