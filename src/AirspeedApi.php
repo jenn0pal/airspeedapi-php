@@ -23,6 +23,7 @@ class AirspeedApi
         'Content-Type' => 'application/json'
     ];
     protected $client;
+    protected $base_path;
 
 
     public function __construct($config = [])
@@ -32,14 +33,21 @@ class AirspeedApi
             'username' => self::CONFIG_USERNAME,
             'password' => self::CONFIG_PASSWORD,
             'api_key' => self::CONFIG_API_KEY,
-            'token' => self::CONFIG_TOKEN
+            'token' => self::CONFIG_TOKEN,
         ], $config);
 
-        $this->client = new Client([
-            'base_uri' => $this->config['url'],
-            'verify' => false
-        ]);
+        $this->initHttpClient($this->config['url']);
     }
+
+    public function initHttpClient($url)
+    {
+        $parsedUrl = parse_url($url);
+        $this->client = new Client([
+            'base_uri' => $parsedUrl['scheme'] . '://' . $parsedUrl['host'],
+        ]);
+        $this->base_path = $parsedUrl['path'] ?? '';
+    }
+
 
     public function generateAuthHeader($timestamp)
     {
@@ -53,11 +61,17 @@ class AirspeedApi
 
     public function send($method, $endpoint, $payload, $options = [])
     {
+        $timestamp = date('Ymdhis');
+        $this->generateAuthHeader($timestamp);
+        $payload['timestamp'] = $timestamp;
+
         $options['headers'] = $this->headers;
         $options['json'] = $payload;
 
+        $path = $this->base_path . '/' . $endpoint;
+
         try {
-            return $this->client->request($method, $endpoint, $options);
+            return $this->client->request($method, $path, $options);
         }  catch (ClientException $e) {
             echo Psr7\str($e->getRequest());
             return $e->getResponse();
@@ -75,15 +89,10 @@ class AirspeedApi
 
     public function pickup(array $pickup_data)
     {
-        $timestamp = date('Ymdhis');
-        $this->generateAuthHeader($timestamp);
-        $body = [
-            'timestamp' => $timestamp,
-            'data' => $pickup_data
-        ];
 
+        $body = ['data' => $pickup_data];
 
-        return $this->send('POST', '/AirspeedAPI/pixsellWaybillProcessor/WaybillRequest', $body);
+        return $this->send('POST', 'WaybillRequest', $body);
     }
 
 
@@ -92,14 +101,20 @@ class AirspeedApi
      **/
     public function quote(array $quote_data)
     {
-        $timestamp = date('Ymdhis');
-        $this->generateAuthHeader($timestamp);
-        $body = [
-            'timestamp' => $timestamp,
-            'data' => $quote_data
-        ];
 
-        return $this->send('POST', '/AirspeedAPI/pixsellWaybillProcessor/PriceQuote', $body);
+        $body = ['data' => $quote_data];
+
+        return $this->send('POST', 'PriceQuote', $body);
+    }
+
+    /**
+     * @param string $trackingNumber - Tracking Number
+     */
+    public function waybillStatus($trackingNumber)
+    {
+        $body = ['trackingNumber' => $trackingNumber];
+
+        return $this->send('POST', 'WaybillStatus', $body);
     }
 
 }
